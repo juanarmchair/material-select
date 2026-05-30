@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material Select | Beta</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
+    <style>
+        /* Strict Swiss Style Guidelines */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f4f4;
+            color: #111111;
+            /* Hide scrollbar for a cleaner look */
+            -ms-overflow-style: none;  
+            scrollbar-width: none;  
+        }
+        body::-webkit-scrollbar { 
+            display: none; 
+        }
+        
+        /* Sharp corners, no rounded edges in standard Swiss design */
+        input, select, button, div {
+            border-radius: 0 !important;
+        }
+
+        /* Accent Color: Safety Orange */
+        .accent-bg { background-color: #FF4500; }
+        .accent-text { color: #FF4500; }
+        .accent-border { border-color: #FF4500; }
+
+        /* Form styling */
+        select, input[type="checkbox"] {
+            border: 2px solid #111;
+            background-color: transparent;
+            transition: all 0.2s;
+        }
+        select:focus {
+            outline: none;
+            border-color: #FF4500;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row">
+
+    <!-- Left Column: Input Grid -->
+    <div class="w-full md:w-1/2 p-8 md:p-16 flex flex-col justify-center border-b-4 md:border-b-0 md:border-r-4 border-black bg-white">
+        
+        <header class="mb-12">
+            <h1 class="text-5xl md:text-7xl font-black uppercase leading-none tracking-tighter">Material<br>Select.</h1>
+            <p class="mt-4 text-sm font-semibold tracking-widest uppercase text-gray-500">Phase 0 // Diagnostic Engine Beta</p>
+        </header>
+
+        <form id="diagnostic-form" class="space-y-8 max-w-md">
+            
+            <!-- Variable 1: Geometry & App -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest mb-2">01. Geometry / Application</label>
+                <select id="application" class="w-full p-4 text-lg font-semibold cursor-pointer">
+                    <option value="decorative">Static / Decorative Part</option>
+                    <option value="structural">Structural / Mechanical Part</option>
+                    <option value="flexible">Gasket / Flexible Component</option>
+                    <option value="outdoor">Outdoor / Weather-Exposed Housing</option>
+                </select>
+            </div>
+
+            <!-- Variable 2: Load -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest mb-2">02. Expected Mechanical Load</label>
+                <select id="load" class="w-full p-4 text-lg font-semibold cursor-pointer">
+                    <option value="low">Low (Own weight only)</option>
+                    <option value="medium">Medium (Vibration / Minor stress)</option>
+                    <option value="high">High (Impact / Friction / Heavy load)</option>
+                </select>
+            </div>
+
+            <!-- Variable 3: Environment -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest mb-3">03. Environmental Stressors (Check all that apply)</label>
+                <div class="space-y-3">
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="checkbox" id="env-heat" class="w-6 h-6 border-2 border-black text-orange-500 focus:ring-0 cursor-pointer">
+                        <span class="text-md font-semibold group-hover:text-orange-600 transition-colors">High Heat (> 60°C / 140°F)</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="checkbox" id="env-uv" class="w-6 h-6 border-2 border-black text-orange-500 focus:ring-0 cursor-pointer">
+                        <span class="text-md font-semibold group-hover:text-orange-600 transition-colors">Prolonged UV / Sunlight</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer group">
+                        <input type="checkbox" id="env-chem" class="w-6 h-6 border-2 border-black text-orange-500 focus:ring-0 cursor-pointer">
+                        <span class="text-md font-semibold group-hover:text-orange-600 transition-colors">Solvents, Oils, or Chemicals</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Variable 4: Hardware -->
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-widest mb-2">04. Hardware Constraints</label>
+                <select id="printer" class="w-full p-4 text-lg font-semibold cursor-pointer">
+                    <option value="open">Standard Open-Bed (e.g., Ender 3)</option>
+                    <option value="enclosed">Standard Enclosed (e.g., Bambu X1, CoreXY)</option>
+                    <option value="hightemp">High-Temp Industrial (Heated Chamber)</option>
+                </select>
+            </div>
+
+            <button type="button" onclick="runDiagnostic()" class="w-full bg-black text-white p-5 text-lg font-bold uppercase tracking-widest hover:bg-orange-600 transition-colors duration-300 mt-8">
+                Run Matrix Analysis
+            </button>
+        </form>
+    </div>
+
+    <!-- Right Column: Output / Results -->
+    <div class="w-full md:w-1/2 bg-[#f4f4f4] relative overflow-hidden flex flex-col justify-center">
+        
+        <!-- Empty State -->
+        <div id="empty-state" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center opacity-100 transition-opacity duration-500">
+            <svg class="w-24 h-24 text-gray-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="1" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+            </svg>
+            <h2 class="text-2xl font-bold tracking-tight text-gray-400">AWAITING PARAMETERS</h2>
+            <p class="text-gray-400 mt-2 text-sm max-w-xs">Enter your geometry, load, and environmental constraints to calculate the optimal polymer chemistry.</p>
+        </div>
+
+        <!-- Results State (Hidden by default) -->
+        <div id="results-state" class="absolute inset-0 p-8 md:p-16 opacity-0 pointer-events-none transition-opacity duration-500 flex flex-col justify-center bg-[#111] text-white">
+            
+            <div class="mb-4">
+                <span class="inline-block bg-orange-600 text-white text-xs font-bold uppercase tracking-widest px-3 py-1 mb-2">Optimal Material Found</span>
+                <h2 id="res-material" class="text-6xl md:text-8xl font-black uppercase tracking-tighter text-white">POLYMER</h2>
+            </div>
+            
+            <div id="warning-box" class="hidden border-l-4 border-orange-500 pl-4 py-2 my-6 bg-white/5">
+                <p id="res-warning" class="text-sm font-semibold text-orange-400 uppercase tracking-wide">Warning goes here.</p>
+            </div>
+
+            <p id="res-pros" class="text-lg md:text-xl font-light text-gray-300 mb-10 max-w-lg leading-relaxed">Description of why this material fits the parameters.</p>
+
+            <div class="grid grid-cols-2 gap-8 border-t border-gray-800 pt-8 mb-8">
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Glass Transition (Tg)</p>
+                    <p id="res-tg" class="text-3xl font-bold text-white">--°C</p>
+                </div>
+                <div>
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-1">Melting Temp (Tm)</p>
+                    <p id="res-tm" class="text-3xl font-bold text-white">--°C</p>
+                </div>
+            </div>
+
+            <div class="bg-white text-black p-6">
+                <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Recommended Slicer Settings</p>
+                <p id="res-slicer" class="text-md font-bold uppercase tracking-wide">Extruder: -- | Bed: --</p>
+            </div>
+            
+            <button onclick="resetApp()" class="text-sm font-bold uppercase tracking-widest text-gray-500 hover:text-white mt-12 self-start transition-colors">
+                ← Run New Diagnostic
+            </button>
+        </div>
+    </div>
+
+    <!-- Logic Engine -->
+    <script>
+        function runDiagnostic() {
+            // 1. Fetch Variables
+            const app = document.getElementById('application').value;
+            const load = document.getElementById('load').value;
+            const heat = document.getElementById('env-heat').checked;
+            const uv = document.getElementById('env-uv').checked;
+            const chem = document.getElementById('env-chem').checked;
+            const printer = document.getElementById('printer').value;
+
+            let matName = "";
+            let tg = "";
+            let tm = "";
+            let pros = "";
+            let slicer = "";
+            let warning = "";
+
+            // 2. The Decision Algorithm (Simplified for MVP)
+            if (app === 'flexible') {
+                matName = "TPU 95A";
+                tg = "-35°C";
+                tm = "225°C";
+                pros = "Provides extreme impact resistance and required elasticity. Highly resistant to abrasion and most oils.";
+                slicer = "Nozzle: 220-240°C | Bed: 50°C | Speed: < 30mm/s";
+                if(printer === 'open') warning = "Warning: Direct drive extruder highly recommended over Bowden tubes for TPU.";
+            } 
+            else if (heat && uv) {
+                matName = "ASA";
+                tg = "100°C";
+                tm = "Amorphous";
+                pros = "Matches ABS thermal and mechanical properties but offers superior UV stability for outdoor environments.";
+                slicer = "Nozzle: 240-260°C | Bed: 90-110°C | Fan: 0-20%";
+                if(printer === 'open') warning = "Critical: ASA requires an enclosed printer to prevent severe warping and layer delamination.";
+            } 
+            else if (heat && !uv) {
+                if (printer === 'hightemp' && load === 'high') {
+                    matName = "Polycarbonate (PC)";
+                    tg = "147°C";
+                    tm = "Amorphous";
+                    pros = "Extreme tensile strength and heat deflection temperature. Ideal for high-stress mechanical engineering parts.";
+                    slicer = "Nozzle: 270-290°C | Bed: 110°C+ | Enclosure: >60°C";
+                } else {
+                    matName = "ABS";
+                    tg = "105°C";
+                    tm = "Amorphous";
+                    pros = "High impact resistance and excellent thermal properties. Easy to post-process with acetone vapor.";
+                    slicer = "Nozzle: 230-250°C | Bed: 90-110°C | Fan: 0%";
+                    if(printer === 'open') warning = "Critical: ABS emits toxic fumes and requires an enclosed printer to prevent warping.";
+                }
+            } 
+            else if (chem && load === 'high') {
+                matName = "Nylon (PA6)";
+                tg = "50-70°C";
+                tm = "220°C";
+                pros = "Unmatched wear resistance, low friction coefficient, and excellent chemical resistance to industrial solvents.";
+                slicer = "Nozzle: 240-260°C | Bed: 70-90°C | Enclosure Req.";
+                warning = "Critical: Nylon is highly hygroscopic. Filament must be dried actively before and during printing.";
+            } 
+            else if (load === 'high' || app === 'structural' || app === 'outdoor') {
+                if (uv || chem || app === 'outdoor') {
+                    matName = "PETG";
+                    tg = "80°C";
+                    tm = "Amorphous";
+                    pros = "Superior layer adhesion, good chemical resistance, and natural water/UV resistance. Excellent functional middle-ground.";
+                    slicer = "Nozzle: 230-250°C | Bed: 70-80°C | Fan: 30-50%";
+                } else {
+                    matName = "Tough PLA / PLA+";
+                    tg = "60°C";
+                    tm = "150-160°C";
+                    pros = "Modified for high stiffness and structural static loads. Prints easily without warping, but fails catastrophically under high heat.";
+                    slicer = "Nozzle: 205-220°C | Bed: 50-60°C | Fan: 100%";
+                }
+            } 
+            else {
+                // Default low stress
+                matName = "Standard PLA";
+                tg = "60°C";
+                tm = "150-160°C";
+                pros = "The most reliable geometry-first material. Excellent dimensional accuracy for decorative or static low-load prototypes.";
+                slicer = "Nozzle: 190-210°C | Bed: 50-60°C | Fan: 100%";
+                if(uv) warning = "Warning: PLA will degrade over time in direct sunlight.";
+                if(heat) warning = "Warning: Standard PLA will deform rapidly in high heat (e.g., inside a car on a summer day).";
+            }
+
+            // 3. Inject Data to DOM
+            document.getElementById('res-material').innerText = matName;
+            document.getElementById('res-tg').innerText = tg;
+            document.getElementById('res-tm').innerText = tm;
+            document.getElementById('res-pros').innerText = pros;
+            document.getElementById('res-slicer').innerText = slicer;
+
+            const warningBox = document.getElementById('warning-box');
+            if (warning !== "") {
+                document.getElementById('res-warning').innerText = warning;
+                warningBox.classList.remove('hidden');
+            } else {
+                warningBox.classList.add('hidden');
+            }
+
+            // 4. Trigger UI Transitions
+            document.getElementById('empty-state').style.opacity = '0';
+            setTimeout(() => {
+                const results = document.getElementById('results-state');
+                results.style.pointerEvents = 'auto';
+                results.style.opacity = '1';
+            }, 300);
+        }
+
+        function resetApp() {
+            document.getElementById('results-state').style.opacity = '0';
+            document.getElementById('results-state').style.pointerEvents = 'none';
+            setTimeout(() => {
+                document.getElementById('empty-state').style.opacity = '1';
+                // Reset form (optional)
+                // document.getElementById('diagnostic-form').reset();
+            }, 400);
+        }
+    </script>
+</body>
+</html>
